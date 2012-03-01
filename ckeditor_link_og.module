@@ -17,7 +17,7 @@
  */
 
 /**
- * Implementation of hook_ckeditor_link_autocomplete_alter().
+ * Implements hook_ckeditor_link_autocomplete_alter().
  */
 function ckeditor_link_og_ckeditor_link_autocomplete_alter(&$results, $string) {
   $results = array();
@@ -29,9 +29,10 @@ function ckeditor_link_og_ckeditor_link_autocomplete_alter(&$results, $string) {
     // select anything that's in this group, not this page, and not a book root
     $sql = db_rewrite_sql("SELECT n.nid, n.title FROM {node} n JOIN {og_ancestry} og ON og.nid = n.nid JOIN {book} b ON b.nid=n.nid WHERE b.nid<>b.bid AND n.nid<>%d AND og.group_nid=%d AND n.title LIKE '%%%s%%' ORDER BY n.title, n.type");
     // only return 10 items
-    $result = db_query_range($sql, array($nid, $group->nid, $string), 0, 10);
+    // TODO Please convert this statement to the D7 database API syntax.
+    $result = db_query_range($sql, array($nid, $group->nid, $string));
     while ($node = db_fetch_object($result)) {
-      $results['node/'. $node->nid] = check_plain($node->title);
+      $results['node/' . $node->nid] = check_plain($node->title);
     }
   }
 
