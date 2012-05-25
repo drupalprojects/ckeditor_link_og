@@ -24,13 +24,18 @@ function ckeditor_link_og_ckeditor_link_autocomplete_alter(&$results, $string) {
   // get current node to exclude self linking
   $nid = arg(1);
   // get current group to keep results in context
-  $group = og_get_group_context();
+  $group = og_context();
   if ($string !== '') {
     // select anything that's in this group, not this page, and not a book root
-    $sql = db_rewrite_sql("SELECT n.nid, n.title FROM {node} n JOIN {og_ancestry} og ON og.nid = n.nid JOIN {book} b ON b.nid=n.nid WHERE b.nid<>b.bid AND n.nid<>%d AND og.group_nid=%d AND n.title LIKE '%%%s%%' ORDER BY n.title, n.type");
-    // only return 10 items
-    // TODO Please convert this statement to the D7 database API syntax.
-    $result = db_query_range($sql, array($nid, $group->nid, $string));
+    $result = db_select('node', 'n')
+      ->fields('n', array('nid', 'title'))
+      ->condition('n.nid', $nid, '<>')
+      ->condition('og.group_nid', $group->nid)
+      ->condition('n.title', '%%%s%%', 'like')
+      ->orderBy('n.title', 'asc')
+      ->orderBy('n.type', 'asc');
+    $result->join('og_ancestry', 'og', 'og.nid = n.nid');
+    $result->execute();
     while ($node = db_fetch_object($result)) {
       $results['node/' . $node->nid] = check_plain($node->title);
     }
