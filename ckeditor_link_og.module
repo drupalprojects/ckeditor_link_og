@@ -27,7 +27,7 @@ function ckeditor_link_og_ckeditor_link_autocomplete_alter(&$results, $string) {
   $group = og_get_group_context();
   if ($string !== '') {
     // select anything that's in this group, not this page
-    $sql = db_rewrite_sql("SELECT n.nid, n.title FROM {node} n JOIN {og_ancestry} og ON og.nid = n.nid AND n.nid<>%d AND og.group_nid=%d AND n.title LIKE '%%%s%%' ORDER BY n.title, n.type");
+    $sql = db_rewrite_sql("SELECT n.nid, n.title FROM {node} n JOIN {og_ancestry} og ON og.nid = n.nid WHERE n.nid<>%d AND og.group_nid=%d AND n.title LIKE '%%%s%%' ORDER BY n.title, n.type");
     // only return 10 items
     $result = db_query_range($sql, array($nid, $group->nid, $string), 0, 10);
     while ($node = db_fetch_object($result)) {
