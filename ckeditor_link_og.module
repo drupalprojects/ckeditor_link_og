@@ -24,22 +24,22 @@ function ckeditor_link_og_ckeditor_link_autocomplete_alter(&$results, $string) {
   // get current node to exclude self linking
   $nid = arg(1);
   // get current group to keep results in context
-  $group = og_context();
+  $group = $_SESSION['og_context'];
   if ($string !== '') {
     // select anything that's in this group, not this page, and not a book root
-    $result = db_select('node', 'n')
+    $query = db_select('node', 'n')
       ->fields('n', array('nid', 'title'))
       ->condition('n.nid', $nid, '<>')
-      ->condition('og.group_nid', $group->nid)
+      ->condition('og.gid', $group['gid'])
+      ->condition('og.entity_type', 'node')
       ->condition('n.title', '%%%s%%', 'like')
       ->orderBy('n.title', 'asc')
       ->orderBy('n.type', 'asc');
-    $result->join('og_ancestry', 'og', 'og.nid = n.nid');
-    $result->execute();
-    while ($node = db_fetch_object($result)) {
+    $query->join('og_membership', 'og', 'og.etid = n.nid');
+    $result = $query->execute();
+    foreach ($result as $node) {
       $results['node/' . $node->nid] = check_plain($node->title);
     }
   }
-
   return $results;
 }
